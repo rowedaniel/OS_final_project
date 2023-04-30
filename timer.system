@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<system>
+    <memory_region name="unsw_timer" size="0x1_000" phys_addr="0xc1109000" />
+
+    <protection_domain name="timer">
+        <program_image path="timer.elf" />
+        <map mr="unsw_timer"
+             vaddr="0x2_000_000"
+             perms="rw"
+             cached="false"
+             setvar_vaddr="timer_vaddr"
+        />
+        <irq irq="42" id="1" trigger="edge" />
+    </protection_domain>
+
+</system>
