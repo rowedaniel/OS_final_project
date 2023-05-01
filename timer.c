@@ -134,9 +134,43 @@ int start_timer(uintptr_t timer_vaddr) {
   // reset clock counting up
   timer.registers->timer_e = 0;
 
+  // setup IRQ for timer b
+  int status;
+  seL4_CPtr init_thread_cnode = seL4_CapInitThreadCNode;
   seL4_CPtr irq_control = seL4_CapIRQControl;
-  seL4_IRQControl_Get(irq_control, TIMERB_IRQ, irq_control, 0, seL4_WordBits);
-  seL4_IRQHandler_SetNotification(0, 2);
+  seL4_Word irq_handler = 1;
+  status = seL4_IRQControl_GetTrigger(irq_control, TIMERB_IRQ, 1, init_thread_cnode, irq_handler, seL4_WordBits);
+
+  if(status) {
+	  sel4cp_dbg_puts("failed to get new IRQ handler capability\n");
+  } else {
+	  sel4cp_dbg_puts("successfully got new IRQ handler capability\n");
+  }
+  char message[6] = {'0' + irq_control, ' ', '0' + init_thread_cnode, ' ', '0' + irq_handler, '\n'};
+  sel4cp_dbg_puts(message);
+
+  // modify IRQ handler CPtr to have something in the badge
+  status = seL4_CNode_Mutate(init_thread_cnode, irq_handler, seL4_WordBits,
+		             init_thread_cnode, irq_handler, seL4_WordBits,
+			     0xFFFF);
+
+  // register timer b's IRQ on the same notification channel (channel 1)
+  status = seL4_IRQHandler_SetNotification(irq_handler, 1);
+
+  if(status) {
+	  sel4cp_dbg_puts("failed to set notification\n");
+  } else {
+	  sel4cp_dbg_puts("successfully set notification\n");
+  }
+
+  // acknowledge reciept of interrupt in case one triggers now
+  status = seL4_IRQHandler_Ack(irq_handler);
+
+  if(status) {
+	  sel4cp_dbg_puts("failed to ack IRQ\n");
+  } else {
+	  sel4cp_dbg_puts("successfully ack IRQ\n");
+  }
 
   return 0;
 }
@@ -146,7 +180,7 @@ timestamp_t get_time(void) {
 }
 
 uint32_t register_timer(uint64_t delay, timer_callback_t callback, void *data) {
-  for (uint32_t i = 0; i < timer.unit_count; ++i) {
+  for (uint32_t i = 1; i < timer.unit_count; ++i) {
     if (timer.units[i].running)
       continue;
 
@@ -162,11 +196,6 @@ uint32_t register_timer(uint64_t delay, timer_callback_t callback, void *data) {
 
     // for now, just hardcode timer to 1s;
     *(timer.units[i].timer_count) = (uint16_t)1000;
-
-    seL4_CPtr init_thread_cnode = seL4_CapInitThreadCNode;
-    seL4_IRQControl_Get(init_thread_cnode, TIMERA_IRQ, init_thread_cnode, 0, seL4_WordBits);
-    seL4_IRQHandler_SetNotification(0, 1);
-
     return i;
   }
 
@@ -193,6 +222,7 @@ uintptr_t timer_vaddr;
 void init(void) {
   start_timer(timer_vaddr);
   register_timer(1000000, test_callback, NULL);
+  sel4cp_dbg_puts("registered timer, expecting message in 1 second\n");
 }
 
 void notified(sel4cp_channel ch) {
