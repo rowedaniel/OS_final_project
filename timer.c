@@ -52,6 +52,11 @@
 // first, pretty sure)
 #define ISA_TIMER_MUX1 0x2664 // used for timers F-I
 
+#define TIMERA_IRQ 38
+#define TIMERB_IRQ 39
+#define TIMERC_IRQ 34
+#define TIMERD_IRQ 57
+
 /**
  * includes for typing all from https://github.com/seL4/seL4
  */
@@ -116,6 +121,7 @@ int start_timer(uintptr_t timer_vaddr) {
   settings |= TIMERE_TIMEBASE_RES_1uS << TIMERE_CLK_BIT;
   timer.registers->mux = settings;
 
+
   timer.unit_count = 4;
   for (uint32_t i = 0; i < timer.unit_count; ++i) {
     timer.units[i].running = 0;
@@ -151,6 +157,10 @@ uint32_t register_timer(uint64_t delay, timer_callback_t callback, void *data) {
 
     // for now, just hardcode timer to 1s;
     *(timer.units[i].timer_count) = (uint16_t)1000;
+
+    seL4_CPtr init_thread_cnode = seL4_CapInitThreadCNode;
+    seL4_IRQControl_Get(init_thread_cnode, TIMERA_IRQ, init_thread_cnode, 0, seL4_WordBits);
+    seL4_IRQHandler_SetNotification(0, 1);
 
     return i;
   }
