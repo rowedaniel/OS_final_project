@@ -153,10 +153,6 @@ int start_timer(uintptr_t timer_vaddr) {
   // reset clock counting up
   timer.registers->timer_e = 0;
 
-  seL4_CPtr init_thread_cnode = seL4_CapInitThreadCNode;
-  seL4_CPtr irq_control = seL4_CapIRQControl;
-  seL4_IRQControl_Get(irq_control, TIMERB_IRQ, init_thread_cnode, 0, seL4_WordBits);
-  seL4_IRQHandler_SetNotification(0, 1);
 
   return 0;
 }
@@ -212,10 +208,10 @@ void init(void) {
 }
 
 void notified(sel4cp_channel ch) {
-  timer.units[0]->callback(ch);
   char buffer[2];
   sel4cp_dbg_puts("Notified! Channel is:\n");
   buffer[0] = '0' + ch;
   buffer[1] = '\n';
   sel4cp_dbg_puts(buffer);
+  timer.units[0].callback(ch);
 }
