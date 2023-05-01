@@ -136,9 +136,9 @@ int start_timer(uintptr_t timer_vaddr) {
 
   // setup IRQ for timer b
   int status;
-  seL4_CPtr init_thread_cnode = seL4_CapInitThreadCNode;
+  seL4_CPtr init_thread_cnode = seL4_CapIRQControl;
   seL4_CPtr irq_control = seL4_CapIRQControl;
-  seL4_Word irq_handler = 1;
+  seL4_Word irq_handler = 5;
   status = seL4_IRQControl_GetTrigger(irq_control, TIMERB_IRQ, 1, init_thread_cnode, irq_handler, seL4_WordBits);
 
   if(status) {
@@ -153,6 +153,11 @@ int start_timer(uintptr_t timer_vaddr) {
   status = seL4_CNode_Mutate(init_thread_cnode, irq_handler, seL4_WordBits,
 		             init_thread_cnode, irq_handler, seL4_WordBits,
 			     0xFFFF);
+  if(status) {
+	  sel4cp_dbg_puts("failed to mutate\n");
+  } else {
+	  sel4cp_dbg_puts("successfully mutate\n");
+  }
 
   // register timer b's IRQ on the same notification channel (channel 1)
   status = seL4_IRQHandler_SetNotification(irq_handler, 1);
