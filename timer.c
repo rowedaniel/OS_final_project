@@ -160,7 +160,7 @@ uint32_t register_timer(uint64_t delay, timer_callback_t callback, void *data) {
 
     seL4_CPtr init_thread_cnode = seL4_CapInitThreadCNode;
     seL4_CPtr irq_control = seL4_CapIRQControl;
-    seL4_IRQControl_Get(irq_control, TIMERA_IRQ, init_thread_cnode, 0, seL4_WordBits);
+    seL4_IRQControl_Get(irq_control, TIMERB_IRQ, init_thread_cnode, 0, seL4_WordBits);
     seL4_IRQHandler_SetNotification(0, 1);
 
     return i;

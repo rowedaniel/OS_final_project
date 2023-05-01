@@ -414,7 +414,7 @@
     0x002b TCB                  - WriteRegisters    - 0x800000000000000b (TCB: PD=timer)
          resume               False
          arch_flags           0
-         regs                 <sel4coreplat.sel4.Sel4Aarch64Regs object at 0x7f88162ac790>
+         regs                 <sel4coreplat.sel4.Sel4Aarch64Regs object at 0x7f64fc1ec790>
     0x002c TCB                  - BindNotification  - 0x800000000000000b (TCB: PD=timer)
          notification (cap)   0x8000000000000010 (Notification: PD=timer)
     0x002d TCB                  - Resume            - 0x800000000000000b (TCB: PD=timer)
