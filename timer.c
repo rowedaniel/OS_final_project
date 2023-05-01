@@ -101,6 +101,25 @@ typedef struct timer_n {
 
 timer_t timer;
 
+//supporting functions, ripped from Ivan
+static char hexchar(unsigned int v)
+{
+    return v < 10 ? '0' + v : ('a' - 10) + v;
+}
+
+static void puthex64(uint64_t val)
+{
+    char buffer[16 + 3];
+    buffer[0] = '0';
+    buffer[1] = 'x';
+    buffer[16 + 3 - 1] = 0;
+    for (unsigned i = 16 + 1; i > 1; i--) {
+        buffer[i] = hexchar(val & 0xf);
+        val >>= 4;
+    }
+    sel4cp_dbg_puts(buffer);
+}
+
 // driver functions
 
 int start_timer(uintptr_t timer_vaddr) {
@@ -183,17 +202,17 @@ int stop_timer(void);
 /* int timer_irq(void *data, seL4_Word irq, seL4_IRQHandler irq_handler); */
 
 // DEBUG STUFF
-void test_callback(int arg) { sel4cp_dbg_puts("Callback called!\n"); }
+void test_callback(int arg) { sel4cp_dbg_puts("Callback called!"); puthex64(arg);}
 // END DEBUG STUFF
 
 uintptr_t timer_vaddr;
 void init(void) {
   start_timer(timer_vaddr);
   register_timer(1000000, test_callback, NULL);
-  register_timer(2000000, test_callback, NULL);
 }
 
 void notified(sel4cp_channel ch) {
+  timer.units[0]->callback(ch);
   char buffer[2];
   sel4cp_dbg_puts("Notified! Channel is:\n");
   buffer[0] = '0' + ch;
