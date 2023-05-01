@@ -133,6 +133,11 @@ int start_timer(uintptr_t timer_vaddr) {
 
   // reset clock counting up
   timer.registers->timer_e = 0;
+
+  seL4_CPtr irq_control = seL4_CapIRQControl;
+  seL4_IRQControl_Get(irq_control, TIMERB_IRQ, irq_control, 0, seL4_WordBits);
+  seL4_IRQHandler_SetNotification(0, 2);
+
   return 0;
 }
 
