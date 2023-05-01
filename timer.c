@@ -133,6 +133,12 @@ int start_timer(uintptr_t timer_vaddr) {
 
   // reset clock counting up
   timer.registers->timer_e = 0;
+
+  seL4_CPtr init_thread_cnode = seL4_CapInitThreadCNode;
+  seL4_CPtr irq_control = seL4_CapIRQControl;
+  seL4_IRQControl_Get(irq_control, TIMERB_IRQ, init_thread_cnode, 0, seL4_WordBits);
+  seL4_IRQHandler_SetNotification(0, 1);
+
   return 0;
 }
 
@@ -157,11 +163,6 @@ uint32_t register_timer(uint64_t delay, timer_callback_t callback, void *data) {
 
     // for now, just hardcode timer to 1s;
     *(timer.units[i].timer_count) = (uint16_t)1000;
-
-    seL4_CPtr init_thread_cnode = seL4_CapInitThreadCNode;
-    seL4_CPtr irq_control = seL4_CapIRQControl;
-    seL4_IRQControl_Get(irq_control, TIMERB_IRQ, init_thread_cnode, 0, seL4_WordBits);
-    seL4_IRQHandler_SetNotification(0, 1);
 
     return i;
   }
@@ -189,6 +190,7 @@ uintptr_t timer_vaddr;
 void init(void) {
   start_timer(timer_vaddr);
   register_timer(1000000, test_callback, NULL);
+  register_timer(2000000, test_callback, NULL);
 }
 
 void notified(sel4cp_channel ch) {
