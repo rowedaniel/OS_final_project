@@ -96,7 +96,7 @@ meson_timer_t timer;
 
 #define TIMER_IRQ_CH 1
 
-uint16_t (*timer_callback)(void);
+u_int16_t (*timer_callback)(void);
 
 static char
 hexchar(unsigned int v)
@@ -132,7 +132,7 @@ uint64_t meson_get_time()
     return time;
 }
 
-void meson_set_timeout(uint16_t timeout, bool periodic, uint16_t (*f)(void))
+void meson_set_timeout(uint16_t timeout, bool periodic, u_int16_t (*f)(void))
 {
     if (periodic) {
         timer.regs->mux |= TIMER_A_MODE;
@@ -146,26 +146,13 @@ void meson_set_timeout(uint16_t timeout, bool periodic, uint16_t (*f)(void))
         timer.regs->mux |= TIMER_A_EN;
         timer.disable = false;
     }
-    timer_callback = f;
+    *timer_callback = f;
 }
 
 void meson_stop_timer()
 {
     timer.regs->mux &= ~TIMER_A_EN;
     timer.disable = true;
-}
-
-uint16_t example_timer_callback(void)
-{
-	static int  numCalls = 0;
-	numCalls ++;
-	sel4cp_dbg_puts("Timer callback called!\n");
-	sel4cp_dbg_puts("Current time is: ");
-	puthex64(meson_get_time());
-	sel4cp_dbg_puts("\nnumCalls: ");
-	puthex64(numCalls);
-	sel4cp_dbg_puts("\n");
-	return 0;
 }
 
 void init()
@@ -179,6 +166,14 @@ void init()
 
     // Have a timeout of 1 second, and have it be periodic so that it will keep recurring.
     sel4cp_dbg_puts("Setting a timeout of 1 second.\n");
+    uint16_t example_timer_callback(void)
+    {
+        sel4cp_dbg_puts("Timer callback called!\n");
+        sel4cp_dbg_puts("Current time is: ");
+        puthex64(meson_get_time());
+        sel4cp_dbg_puts("\n");
+        return 0;
+    }
     meson_set_timeout(1000, true, example_timer_callback);
 }
 
@@ -190,7 +185,6 @@ void notified(sel4cp_channel ch) {
             sel4cp_dbg_puts("Current time is: ");
             puthex64(meson_get_time());
             sel4cp_dbg_puts("\n");
-	    timer_callback();
             break;
         default:
             sel4cp_dbg_puts("TIMER|ERROR: unexpected channel!\n");
