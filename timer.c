@@ -198,7 +198,7 @@ int stop_timer(void);
 /* int timer_irq(void *data, seL4_Word irq, seL4_IRQHandler irq_handler); */
 
 // DEBUG STUFF
-void test_callback(int arg) { sel4cp_dbg_puts("Callback called!"); puthex64(arg);}
+void test_callback(int arg) { sel4cp_dbg_puts("Callback called!"); }
 // END DEBUG STUFF
 
 uintptr_t timer_vaddr;
