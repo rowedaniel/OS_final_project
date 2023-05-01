@@ -159,7 +159,8 @@ uint32_t register_timer(uint64_t delay, timer_callback_t callback, void *data) {
     *(timer.units[i].timer_count) = (uint16_t)1000;
 
     seL4_CPtr init_thread_cnode = seL4_CapInitThreadCNode;
-    seL4_IRQControl_Get(init_thread_cnode, TIMERA_IRQ, init_thread_cnode, 0, seL4_WordBits);
+    seL4_CPtr irq_control = seL4_CapIRQControl;
+    seL4_IRQControl_Get(irq_control, TIMERA_IRQ, init_thread_cnode, 0, seL4_WordBits);
     seL4_IRQHandler_SetNotification(0, 1);
 
     return i;
